@@ -4,10 +4,11 @@ use warnings;
 use File::Basename;
 use DateTime;
 use File::Basename;
+use Term::ANSIColor;
 my $dirname = dirname(__FILE__);
-print "Running from $dirname\n";
+#print "Running from $dirname\n";
 die "You must specify a directory!" if (scalar (@ARGV) !=1 || ! -d $ARGV[0]);
-
+print colored("Running on $ARGV[0]\n", 'green');
 # step 1 - convert all MVIMGs to IMGs
 print "Converting all MVIMGs to IMGs\n";
 print `$dirname/extract-mvimg.sh "$ARGV[0]/"MVIMG*`;
@@ -22,7 +23,7 @@ my $lastDate; #to set to the directory
 foreach my $movie (@avi){
     my $infile = "$ARGV[0]/$movie";
     my ($name, $path, $suffix) = fileparse($infile, (".jpg", ".JPG"));
-    if($name=~/^P([0-9]+)|^IMG_[0-9]+\.|^DSC/){
+    if($name=~/^P([A-Z0-9]+)|^IMG_[0-9]+\.|^DSC/){
         #panasonic file
         my $createDate = `exiftool -CreateDate "$infile"`;
         $createDate=~/([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/;
@@ -80,7 +81,7 @@ foreach my $movie (@avi){
         print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
     
     }
-    elsif($name=~/^(?:IMG_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:_[0-9]+)?$/){
+    elsif($name=~/^(?:IMG_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[_\(][0-9]+[\)]?)?$/){
         #samsung converted file or nexus
         my $year = $1;
         my $month = $2;
@@ -115,11 +116,11 @@ foreach my $movie (@avi){
         print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
     }
     else{
-        print "ERROR: $name: image format not implemented\n";
+        print colored("ERROR: $name: image format not implemented\n", 'red');
     }
 }
 if(defined $lastDate){
-    print "Set parent directory date to ". $lastDate->strftime("%Y-%m-%d %H:%M:%S")."\n";
+    print colored("Set parent directory $ARGV[0] date to ". $lastDate->strftime("%Y-%m-%d %H:%M:%S")."\n", 'green');
     my $datestring = $lastDate->strftime("%Y%m%d%H%M.%S");
     print `touch -c -t '$datestring' '$ARGV[0]'`;
 }
