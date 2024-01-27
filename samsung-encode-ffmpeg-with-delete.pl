@@ -105,7 +105,7 @@ foreach my $movie (@avi){
     }
     
     if( -s "$outfile" > 1_000_000){
-	print "****************** Conversion successful. Deleting $infile ********************";
+	print coloured ("****************** Conversion successful. Deleting $infile ********************", 'green');
 	unlink "$infile";
     }    
 
