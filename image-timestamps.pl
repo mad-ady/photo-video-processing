@@ -15,14 +15,14 @@ print `$dirname/extract-mvimg.sh "$ARGV[0]/"MVIMG*`;
 
 
 opendir(DIR, $ARGV[0]) || die "can't opendir $ARGV[0]: $!";
-my @avi = grep { /\.jpg|^VID-.*.mp4/i && -f "$ARGV[0]/$_" } readdir(DIR);
+my @avi = grep { /\.jpg|.*.mp4/i && -f "$ARGV[0]/$_" } readdir(DIR);
 closedir DIR;
 
 my $lastDate; #to set to the directory
 
 foreach my $movie (@avi){
     my $infile = "$ARGV[0]/$movie";
-    my ($name, $path, $suffix) = fileparse($infile, (".jpg", ".JPG"));
+    my ($name, $path, $suffix) = fileparse($infile, (".jpg", ".JPG", ".mp4"));
     if($name=~/^P([A-Z0-9]+)|^IMG_[0-9]+\.|^DSC/){
         #panasonic file
         my $createDate = `exiftool -CreateDate "$infile"`;
@@ -33,7 +33,7 @@ foreach my $movie (@avi){
         my $hour = $4;
         my $min = $5;
         my $sec = $6;
-        if(defined $sec){
+        if(defined $sec && $month > 0){
             
             #print "$name: Set date to $year-$month-$day $hour:$min:$sec\n";
             printf ("%30s:\tSet date to $year-$month-$day $hour:$min:$sec\n", $name);
@@ -81,7 +81,7 @@ foreach my $movie (@avi){
         print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
     
     }
-    elsif($name=~/^(?:IMG_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[_\(][0-9]+[\)]?)?$/){
+    elsif($name=~/^(?:IMG_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[_\(][0-9]+[\)]?)?(?:--.[0-9]*p)?$/){
         #samsung converted file or nexus
         my $year = $1;
         my $month = $2;
