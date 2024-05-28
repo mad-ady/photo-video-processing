@@ -81,7 +81,7 @@ foreach my $movie (@avi){
         print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
     
     }
-    elsif($name=~/^(?:IMG_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[_\(][0-9]+[\)]?)?(?:--.[0-9]*p)?$/){
+    elsif($name=~/^(?:IMG_|VID_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[_\(][0-9]+[\)]?)?(?:--.[0-9]*p)?$/){
         #samsung converted file or nexus
         my $year = $1;
         my $month = $2;
@@ -116,7 +116,68 @@ foreach my $movie (@avi){
         print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
     }
     else{
-        print colored("ERROR: $name: image format not implemented\n", 'red');
+		# for any other file, try to extract the date from EXIF metadata
+		my $createDate = `exiftool -CreateDate "$infile"`;
+        $createDate=~/([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/;
+        my $year = $1;
+        my $month = $2;
+        my $day = $3;
+        my $hour = $4;
+        my $min = $5;
+        my $sec = $6;
+        if(defined $sec && $month > 0){
+			#try to set the exif CreateDate for the file, even if it's not standard.
+			printf ("%30s:\tSet date to $year-$month-$day $hour:$min:$sec\n", $name);
+            print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
+
+            my $dt = DateTime->new( year=> $year, month => $month, day => $day, hour => $hour, minute => $min, second => $sec);
+            if(defined $lastDate){
+                #select the older date
+                if($dt >= $lastDate){
+                    $lastDate = $dt;
+                }
+            }
+            else{
+                $lastDate = $dt;
+            }
+        }
+        elsif($name=~/([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2})--/){
+            $year = $1;
+            $month = $2;
+            $day = $3;
+            $hour = $4;
+            $min = $5;
+            $sec = $6;
+            if(defined $sec && $month > 0){
+			    printf ("%30s:\tSet date to $year-$month-$day $hour:$min:$sec\n", $name);
+                print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
+
+                my $dt = DateTime->new( year=> $year, month => $month, day => $day, hour => $hour, minute => $min, second => $sec);
+                if(defined $lastDate){
+                    #select the older date
+                    if($dt >= $lastDate){
+                        $lastDate = $dt;
+                    }
+                }
+                else{
+                    $lastDate = $dt;
+                }
+
+            }
+            else{
+                print "ERROR: $name: unable to parse a valid date from $name\n";
+
+            }
+
+            
+        }
+        else{
+            print "ERROR: $name: unable to extract date from $name\n";
+        }
+
+		
+
+        #print colored("ERROR: $name: image format not implemented\n", 'red');
     }
 }
 if(defined $lastDate){

@@ -88,10 +88,3 @@ foreach my $file (@files){
 print Dumper(\%metadata);
 
 print "Notification is: $notification\n";
-my %msg = (
-    'message' => "Transcoded the following files: $notification",
-    'title' => 'TV Transcoding'
-);
-my $js = encode_json(%msg);
-#print `/usr/bin/curl -X POST -H "x-ha-access: ady65536" -H "Content-Type: application/json" --data "{\"message\": \"Transcoded the following files: $notification\", \"title\": \"TV Transcoding\"}" http://192.168.1.14:8123/api/services/persistent_notification/create`
-echo /usr/bin/curl -X POST -H "x-ha-access: ady65536" -H "Content-Type: application/json" --data "$js" http://192.168.1.14:8123/api/services/persistent_notification/create

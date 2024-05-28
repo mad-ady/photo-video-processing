@@ -15,6 +15,7 @@ my $bypassffprobe = 1;
 #Timings should be chronological!
 my @timings = ({'duration' => 0, 'keep' => 'd'});
 
+print "Input a duration and whether to keep that section or not ([hh:][mm:]ss k|d)\n";
 my $keepers = 0;
 while(<STDIN>){
 	my $line=$_;
