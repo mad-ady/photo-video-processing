@@ -5,7 +5,7 @@ use Data::Dumper;
 
 my $input = $ARGV[0];
 my $output = $input;
-$output=~s/\.([^\.]+)/_.$1/; 
+$output=~s/\.([^\.]+)$/_.$1/; 
 
 #
 #use ffmpeg to extract dimensions, framerate    
