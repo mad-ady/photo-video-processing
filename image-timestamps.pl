@@ -81,8 +81,8 @@ foreach my $movie (@avi){
         print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
     
     }
-    elsif($name=~/^(?:IMG_|VID_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[_\(][0-9]+[\)]?)?(?:--.[0-9]*p)?$/){
-        #samsung converted file or nexus
+    elsif($name=~/^(?:IMG_|VID_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[0-9]{3})?(?:[_\(][0-9]+[\)]?)?(?:--.[0-9]*p)?$/){
+        #samsung, nexus, xiaomi or motoroloa converted file
         my $year = $1;
         my $month = $2;
         my $day = $3;
