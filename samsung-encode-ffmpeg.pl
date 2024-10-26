@@ -5,6 +5,8 @@ use warnings;
 use Term::ANSIColor;
 use Data::Dumper;
 
+my $convert4kto1080p = 1;
+
 die "You must specify a directory!" if (scalar (@ARGV) !=1 || ! -d $ARGV[0]);
 
 opendir(DIR, $ARGV[0]) || die "can't opendir $ARGV[0]: $!";
@@ -25,6 +27,8 @@ foreach my $movie (@avi){
 	print "Skipping $movie because it is already converted\n";
 	next;
     }
+
+    my $downscale_args = "";
 
 #    exit;
     
@@ -51,7 +55,16 @@ foreach my $movie (@avi){
     my $bandwidth = 2_500; #by default anything less 720p gets 2.5M
     #my $framerate = $videoInfo->{framerate};
     print colored ("Video height is ".$videoInfo{'height'}."p\n", 'bold white');
-    if($videoInfo{height} == 1080){
+    if($videoInfo{height} == 2160){
+        #4k
+        $bandwidth = 15_000; #low bitrate
+
+        if($convert4kto1080p){
+            $bandwidth = 6_000;
+            $downscale_args = '-vf scale=1920:1080';
+        }
+    }
+    elsif($videoInfo{height} == 1080){
         $bandwidth = 6_000;
     }
     elsif($videoInfo{height} == 720){
@@ -68,8 +81,13 @@ foreach my $movie (@avi){
     print colored ("Original framerate is ".$videoInfo{fps}, 'red');
     $rate=$videoInfo{fps} if($videoInfo{fps}>24);
     
+    if ($rate > 30){
+        #high fps video should have a higher bitrate
+        $bandwidth = int($bandwidth*1.5);
+    }
+
     print colored ("Video bandwidth will be $bandwidth, $rate fps\n", 'bold white');
-    my $encode = "nice ffmpeg -i '$infile' -c:v libx264 -preset slower -crf 22 -x264-params 'nal-hrd=cbr' -b:v ${bandwidth}k -maxrate ${bandwidth}k -bufsize 2M -c:a aac '$outfile'";
+    my $encode = "nice ffmpeg -i '$infile' -c:v libx264 -preset slower -crf 22 -x264-params 'nal-hrd=cbr' -b:v ${bandwidth}k -maxrate ${bandwidth}k -bufsize 2M $downscale_args -c:a aac '$outfile'";
     #    my $encode = "nice HandBrakeCLI -i '$infile' -o '$outfile' -t 1 --angle 1 -c 1 -f mp4  --loose-anamorphic  --modulus 2 -e x264 -b $bandwidth -2  -T  -r $rate --cfr -a 1 -E ca_aac --audio-fallback ca_aac --x264-preset=slow  --x264-profile=high --h264-level='4.1' --verbose=1 2>&1";
 
     print colored ("Encoding...\n", 'green');
