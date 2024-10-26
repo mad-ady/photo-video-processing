@@ -10,11 +10,10 @@ fi
 
 path=$1
 
-find "$path" -type f \( -iname "*.mp4" \) -print0 | xargs -0 -I{} sh -c '
+find "$path" -type f \( -iname "*.mp4" \) -print0 | xargs -0 -I{} bash -c '
 for file in "{}"; do
-  width=$(mediainfo --Inform="Video;%Width%" "$file")
-  if [ "$width" -eq "2160" ]; then 
-    #echo $file ${width}x${height}; 
+  height=$(mediainfo --Inform="Video;%Height%" "$file")
+  if [[ "$height" -eq "2160" ]]; then 
     echo "$file"
   fi
 done
