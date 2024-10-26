@@ -23,7 +23,8 @@ foreach my $movie (@avi){
     print "Base name is $base\n";
     my $size720 = -s "$ARGV[0]/$base--720p.mp4" || 0;
     my $size1080 = -s "$ARGV[0]/$base--1080p.mp4" || 0;
-    if( $size720 > 0 || $size1080 > 0){
+    my $size4k = -s "$ARGV[0]/$base--2160p.mp4" || 0;
+    if( $size720 > 0 || $size1080 > 0 || $size4k > 0){
 	print "Skipping $movie because it is already converted\n";
 	next;
     }
@@ -47,10 +48,6 @@ foreach my $movie (@avi){
 	$videoInfo{'fps'}=$4; 
     }
 
-    my $outfile=$ARGV[0]."/$base--".$videoInfo{height}."p.mp4";
-    print colored ("Infile is $infile, outfile is $outfile\n", 'green');
-    
-    
     print Dumper(\%videoInfo);
     my $bandwidth = 2_500; #by default anything less 720p gets 2.5M
     #my $framerate = $videoInfo->{framerate};
@@ -62,6 +59,8 @@ foreach my $movie (@avi){
         if($convert4kto1080p){
             $bandwidth = 6_000;
             $downscale_args = '-vf scale=1920:1080';
+            #override the name aswell
+            $videoInfo{height} = 1080;
         }
     }
     elsif($videoInfo{height} == 1080){
@@ -87,6 +86,10 @@ foreach my $movie (@avi){
     }
 
     print colored ("Video bandwidth will be $bandwidth, $rate fps\n", 'bold white');
+
+    my $outfile=$ARGV[0]."/$base--".$videoInfo{height}."p.mp4";
+    print colored ("Infile is $infile, outfile is $outfile\n", 'green');
+    
     my $encode = "nice ffmpeg -i '$infile' -c:v libx264 -preset slower -crf 22 -x264-params 'nal-hrd=cbr' -b:v ${bandwidth}k -maxrate ${bandwidth}k -bufsize 2M $downscale_args -c:a aac '$outfile'";
     #    my $encode = "nice HandBrakeCLI -i '$infile' -o '$outfile' -t 1 --angle 1 -c 1 -f mp4  --loose-anamorphic  --modulus 2 -e x264 -b $bandwidth -2  -T  -r $rate --cfr -a 1 -E ca_aac --audio-fallback ca_aac --x264-preset=slow  --x264-profile=high --h264-level='4.1' --verbose=1 2>&1";
 
