@@ -5,13 +5,26 @@ use File::Basename;
 use DateTime;
 use File::Basename;
 use Term::ANSIColor;
+
 my $dirname = dirname(__FILE__);
 #print "Running from $dirname\n";
 die "You must specify a directory!" if (scalar (@ARGV) !=1 || ! -d $ARGV[0]);
 print colored("Running on $ARGV[0]\n", 'green');
 # step 1 - convert all MVIMGs to IMGs
 print "Converting all MVIMGs to IMGs\n";
-print `$dirname/extract-mvimg.sh "$ARGV[0]/"MVIMG*`;
+open(my $pipe, '-|', "$dirname/extract-mvimg.sh \"$ARGV[0]/\"MVIMG*");
+while(<$pipe>){
+    print;
+}
+close $pipe;
+
+# step 2 - downscale all 8k photos to 4k (just because they're big and noisy anyway)
+print "Downsampling all 8K IMGs to 4k\n";
+open(my $pipe, '-|', "$dirname/downscale-pictures-to-4k.sh \"$ARGV[0]/\"*.jpg");
+while(<$pipe>){
+    print;
+}
+close $pipe;
 
 
 opendir(DIR, $ARGV[0]) || die "can't opendir $ARGV[0]: $!";
