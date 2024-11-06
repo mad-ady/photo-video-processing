@@ -20,7 +20,11 @@ do
       basedir=`dirname "$srcfile"`
       filename=`basename "$srcfile"`
       basefile=${filename%.jpg}
-      echo "Downsampling $srcfile from $height to ${basefile}_4k.jpg (2250)";
-      convert "$srcfile" -filter Lanczos -resize 4000x2250 "$basedir/${basefile}_4k.jpg"
+      if [ ! -r "$basedir/${basefile}_4k.jpg" ]; then
+          echo "Downsampling $srcfile from $height to ${basefile}_4k.jpg (2250)";
+          convert "$srcfile" -filter Lanczos -resize 4000x2250 "$basedir/${basefile}_4k.jpg"
+      else
+           echo "${basefile}_4k.jpg already exists, skipping";
+      fi
    fi
 done
