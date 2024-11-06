@@ -6,6 +6,8 @@ use DateTime;
 use File::Basename;
 use Term::ANSIColor;
 
+my $debug=0;
+
 my $dirname = dirname(__FILE__);
 #print "Running from $dirname\n";
 die "You must specify a directory!" if (scalar (@ARGV) !=1 || ! -d $ARGV[0]);
@@ -37,6 +39,7 @@ foreach my $movie (@avi){
     my $infile = "$ARGV[0]/$movie";
     my ($name, $path, $suffix) = fileparse($infile, (".jpg", ".JPG", ".mp4"));
     if($name=~/^P([A-Z0-9]+)|^IMG_[0-9]+\.|^DSC/){
+        print colored("Matched Panasonic\n", "yellow") if ($debug);
         #panasonic file
         my $createDate = `exiftool -CreateDate "$infile"`;
         $createDate=~/([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/;
@@ -72,6 +75,7 @@ foreach my $movie (@avi){
 #        print "ERROR: $name: sony files not implemented\n";
 #    }
     elsif($name=~/^(?:IMG|VID)-([0-9]{4})([0-9]{2})([0-9]{2})-WA/){
+        print colored("Matched WhatsApp\n", "yellow") if ($debug);
         #WhatsApp image/video
         my $year = $1;
         my $month = $2;
@@ -94,8 +98,10 @@ foreach my $movie (@avi){
         print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
     
     }
-    elsif($name=~/^(?:IMG_|VID_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[0-9]{3})?(?:[_\(][0-9]+[\)]?)?(?:--.[0-9]*p)?$/){
-        #samsung, nexus, xiaomi or motoroloa converted file
+    elsif($name=~/^(?:IMG_|VID_)?([0-9]{4})([0-9]{2})([0-9]{2})_?([0-9]{2})([0-9]{2})([0-9]{2})(?:[0-9]{3})?(?:[_\(][0-9]+[\)]?)?(?:_[0-9]+_[0-9]+)?(?:_-[0-9]+)?(?:--.[0-9]*p)?$/){
+        #samsung, nexus, xiaomi, motorola or Insta360 converted file
+        print colored("Matched Samsung, Nexus, Xiaomi, Motorola or Insta360\n", "yellow") if ($debug);
+        
         my $year = $1;
         my $month = $2;
         my $day = $3;
@@ -130,6 +136,8 @@ foreach my $movie (@avi){
     }
     else{
 		# for any other file, try to extract the date from EXIF metadata
+        print colored("Matched else, generic\n", "yellow") if ($debug);
+
 		my $createDate = `exiftool -CreateDate "$infile"`;
         $createDate=~/([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/;
         my $year = $1;
@@ -155,6 +163,8 @@ foreach my $movie (@avi){
             }
         }
         elsif($name=~/([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2})([0-9]{2})(?:_[0-9]+_[0-9]+)?--/){
+            print colored("Matched generic, non-exif\n", "yellow") if ($debug);
+
             $year = $1;
             $month = $2;
             $day = $3;
