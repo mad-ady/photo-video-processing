@@ -22,7 +22,7 @@ close $pipe;
 
 # step 2 - downscale all 8k photos to 4k (just because they're big and noisy anyway)
 print "Downsampling all 8K IMGs to 4k\n";
-open(my $pipe, '-|', "$dirname/downscale-pictures-to-4k.sh \"$ARGV[0]/\"*.jpg");
+open($pipe, '-|', "$dirname/downscale-pictures-to-4k.sh \"$ARGV[0]/\"*.jpg");
 while(<$pipe>){
     print;
 }
@@ -136,7 +136,6 @@ foreach my $movie (@avi){
     }
     else{
 		# for any other file, try to extract the date from EXIF metadata
-        print colored("Matched else, generic\n", "yellow") if ($debug);
 
 		my $createDate = `exiftool -CreateDate "$infile"`;
         $createDate=~/([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/;
@@ -146,7 +145,8 @@ foreach my $movie (@avi){
         my $hour = $4;
         my $min = $5;
         my $sec = $6;
-        if(defined $sec && $month > 0){
+        if(defined $sec && $month > 0 && $infile=~/.*jpg$/){
+            print colored("Matched else, generic picture\n", "yellow") if ($debug);
 			#try to set the exif CreateDate for the file, even if it's not standard.
 			printf ("%30s:\tSet date to $year-$month-$day $hour:$min:$sec\n", $name);
             print `touch -c -t '${year}${month}${day}${hour}${min}.${sec}' '$infile'`;
